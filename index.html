@@ -1,0 +1,1298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baba Hatnagar Krishikranti Farmers Producer Company Limited</title>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'serif': ['Playfair Display', 'serif'],
+                        'sans': ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        'earth': {
+                            50: '#f7f5f0',
+                            100: '#efeadd',
+                            200: '#dfd5b8',
+                            300: '#c9b68a',
+                            400: '#b5965f',
+                            500: '#a67c4b',
+                            600: '#8f613b',
+                            700: '#744a32',
+                            800: '#603e2f',
+                            900: '#51332b',
+                        },
+                        'farm': {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            200: '#bbf7d0',
+                            300: '#86efac',
+                            400: '#4ade80',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            800: '#166534',
+                            900: '#14532d',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        .hero-pattern {
+            background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+        
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(22, 163, 74, 0.3);
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 0;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            animation: modalSlide 0.3s ease-out;
+        }
+        
+        @keyframes modalSlide {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .admin-panel {
+            display: none;
+        }
+        
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #16a34a;
+            color: white;
+            padding: 16px 24px;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            z-index: 9999;
+            display: none;
+            animation: slideUp 0.3s ease-out;
+        }
+        
+        @keyframes slideUp {
+            from { transform: translateY(100px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .product-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .product-card:hover {
+            transform: scale(1.02);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+        
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 12px;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .status-online {
+            background: #dcfce7;
+            color: #166534;
+        }
+        
+        .status-offline {
+            background: #fef3c7;
+            color: #92400e;
+        }
+    </style>
+<base target="_blank">
+</head>
+<body class="font-sans bg-earth-50 text-gray-800 antialiased">
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 bg-white/95 backdrop-blur-md shadow-sm transition-all duration-300" id="navbar">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 bg-farm-600 rounded-full flex items-center justify-center text-white font-bold text-xl">
+                        BH
+                    </div>
+                    <div>
+                        <h1 class="font-serif text-xl font-bold text-gray-900 leading-tight">Baba Hatnagar Krishikranti</h1>
+                        <p class="text-xs text-farm-600 font-medium">Farmers Producer Company Ltd</p>
+                    </div>
+                </div>
+                
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="#home" class="text-gray-700 hover:text-farm-600 font-medium transition">Home</a>
+                    <a href="#about" class="text-gray-700 hover:text-farm-600 font-medium transition">About</a>
+                    <a href="#team" class="text-gray-700 hover:text-farm-600 font-medium transition">Leadership</a>
+                    <a href="#products" class="text-gray-700 hover:text-farm-600 font-medium transition">Products</a>
+                    <a href="#contact" class="text-gray-700 hover:text-farm-600 font-medium transition">Contact</a>
+                </div>
+
+                <div class="flex items-center space-x-4">
+                    <div id="userSection" class="hidden items-center space-x-3">
+                        <span id="userName" class="text-sm font-medium text-gray-700"></span>
+                        <button onclick="logout()" class="text-sm text-red-600 hover:text-red-700 font-medium">Logout</button>
+                    </div>
+                    <button id="loginBtn" onclick="openAuthModal()" class="btn-primary text-white px-6 py-2.5 rounded-full font-medium shadow-lg hover:shadow-xl transition">
+                        Sign In
+                    </button>
+                    <button id="adminBtn" onclick="showAdminPanel()" class="hidden bg-gray-800 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-900 transition">
+                        <i class="fas fa-cog mr-2"></i>Admin
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero-pattern min-h-screen flex items-center justify-center relative pt-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white">
+            <div class="fade-in">
+                <p class="text-farm-300 font-medium mb-4 tracking-widest uppercase text-sm">Est. July 2023 • West Bengal, India</p>
+                <h1 class="font-serif text-5xl md:text-7xl font-bold mb-6 leading-tight">
+                    Cultivating Future,<br>
+                    <span class="text-farm-300">Empowering Farmers</span>
+                </h1>
+                <p class="text-xl md:text-2xl mb-8 text-gray-200 max-w-3xl mx-auto font-light">
+                    A registered Farmers Producer Company dedicated to sustainable agriculture, quality vegetable production, and farmer prosperity in East Midnapore.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <a href="#products" class="btn-primary text-white px-8 py-4 rounded-full font-semibold text-lg shadow-xl hover:shadow-2xl transition inline-flex items-center justify-center">
+                        <i class="fas fa-shopping-basket mr-2"></i>Explore Products
+                    </a>
+                    <a href="#about" class="bg-white/20 backdrop-blur-md text-white border-2 border-white/30 px-8 py-4 rounded-full font-semibold text-lg hover:bg-white/30 transition inline-flex items-center justify-center">
+                        Learn More
+                    </a>
+                </div>
+            </div>
+            
+            <div class="absolute bottom-10 left-1/2 transform -translate-x-1/2 animate-bounce">
+                <i class="fas fa-chevron-down text-white text-2xl"></i>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="py-16 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+                <div class="p-6 rounded-2xl bg-earth-50">
+                    <div class="text-3xl font-bold text-farm-600 mb-2">2023</div>
+                    <div class="text-sm text-gray-600 font-medium">Established</div>
+                </div>
+                <div class="p-6 rounded-2xl bg-earth-50">
+                    <div class="text-3xl font-bold text-farm-600 mb-2">₹15L</div>
+                    <div class="text-sm text-gray-600 font-medium">Authorized Capital</div>
+                </div>
+                <div class="p-6 rounded-2xl bg-earth-50">
+                    <div class="text-3xl font-bold text-farm-600 mb-2">5</div>
+                    <div class="text-sm text-gray-600 font-medium">Directors</div>
+                </div>
+                <div class="p-6 rounded-2xl bg-earth-50">
+                    <div class="text-3xl font-bold text-farm-600 mb-2">Active</div>
+                    <div class="text-sm text-gray-600 font-medium">Company Status</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="py-20 bg-earth-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-2 gap-12 items-center">
+                <div>
+                    <div class="inline-block bg-farm-100 text-farm-700 px-4 py-2 rounded-full text-sm font-semibold mb-6">
+                        CIN: U01139WB2023PTC263793
+                    </div>
+                    <h2 class="font-serif text-4xl font-bold text-gray-900 mb-6">About Our Company</h2>
+                    <p class="text-gray-600 mb-6 text-lg leading-relaxed">
+                        Baba Hatnagar Krishikranti Farmers Producer Company Limited is a registered Private Limited Company incorporated on 25th July 2023 under the Companies Act, 2013. We operate in the Crop and Animal Production sector, specializing in growing vegetables and agricultural commodities.
+                    </p>
+                    <p class="text-gray-600 mb-6 text-lg leading-relaxed">
+                        Located in Rasan, East Midnapore, West Bengal, we are committed to empowering local farmers through collective marketing, quality production, and sustainable agricultural practices. Our mission is to bridge the gap between farmers and consumers while ensuring fair prices for our producer members.
+                    </p>
+                    <div class="grid grid-cols-2 gap-6 mt-8">
+                        <div class="flex items-start space-x-3">
+                            <div class="w-10 h-10 bg-farm-100 rounded-full flex items-center justify-center text-farm-600 flex-shrink-0">
+                                <i class="fas fa-seedling"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-gray-900">Quality Seeds</h4>
+                                <p class="text-sm text-gray-600">Premium agricultural inputs</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start space-x-3">
+                            <div class="w-10 h-10 bg-farm-100 rounded-full flex items-center justify-center text-farm-600 flex-shrink-0">
+                                <i class="fas fa-hand-holding-heart"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-gray-900">Farmer First</h4>
+                                <p class="text-sm text-gray-600">Community driven approach</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="relative">
+                    <div class="absolute -top-4 -left-4 w-24 h-24 bg-farm-200 rounded-full opacity-50"></div>
+                    <div class="absolute -bottom-4 -right-4 w-32 h-32 bg-earth-300 rounded-full opacity-50"></div>
+                    <img src="https://images.unsplash.com/photo-1625246333195-78d9c38ad449?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Farming" class="relative rounded-2xl shadow-2xl w-full h-96 object-cover">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Leadership Section -->
+    <section id="team" class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="font-serif text-4xl font-bold text-gray-900 mb-4">Our Leadership</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto">Meet the dedicated team of directors leading our agricultural revolution</p>
+            </div>
+
+            <!-- CEO -->
+            <div class="mb-16 flex justify-center">
+                <div class="bg-gradient-to-br from-farm-50 to-earth-50 p-8 rounded-3xl max-w-md w-full text-center card-hover border border-farm-100">
+                    <div class="relative mb-6">
+                        <div class="w-32 h-32 mx-auto rounded-full overflow-hidden border-4 border-farm-200 shadow-lg">
+                            <img src="https://ui-avatars.com/api/?name=Anukul+Santra&background=16a34a&color=fff&size=128" alt="CEO" class="w-full h-full object-cover">
+                        </div>
+                        <div class="absolute bottom-0 right-1/2 transform translate-x-12 bg-farm-600 text-white px-3 py-1 rounded-full text-xs font-bold">
+                            CEO
+                        </div>
+                    </div>
+                    <h3 class="font-serif text-2xl font-bold text-gray-900 mb-2">Anukul Santra</h3>
+                    <p class="text-farm-600 font-medium mb-4">Chief Executive Officer</p>
+                    <p class="text-gray-600 text-sm">Leading the company with vision and dedication towards farmer empowerment and sustainable agriculture.</p>
+                    <div class="mt-4 flex justify-center space-x-3">
+                        <span class="text-xs bg-gray-100 px-3 py-1 rounded-full text-gray-600">C/o Address</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Board of Directors -->
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="bg-white p-6 rounded-2xl shadow-lg card-hover border border-gray-100 text-center">
+                    <div class="w-24 h-24 mx-auto rounded-full overflow-hidden mb-4 border-2 border-farm-200">
+                        <img src="https://ui-avatars.com/api/?name=Chandan+Kumar+Giri&background=15803d&color=fff&size=128" alt="Director" class="w-full h-full object-cover">
+                    </div>
+                    <h4 class="font-bold text-gray-900 mb-1">Chandan Kumar Giri</h4>
+                    <p class="text-farm-600 text-sm font-medium">Director</p>
+                    <p class="text-gray-500 text-xs mt-2">Board Member</p>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl shadow-lg card-hover border border-gray-100 text-center">
+                    <div class="w-24 h-24 mx-auto rounded-full overflow-hidden mb-4 border-2 border-farm-200">
+                        <img src="https://ui-avatars.com/api/?name=Debabrata+Hazra&background=15803d&color=fff&size=128" alt="Director" class="w-full h-full object-cover">
+                    </div>
+                    <h4 class="font-bold text-gray-900 mb-1">Debabrata Hazra</h4>
+                    <p class="text-farm-600 text-sm font-medium">Director</p>
+                    <p class="text-gray-500 text-xs mt-2">Board Member</p>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl shadow-lg card-hover border border-gray-100 text-center">
+                    <div class="w-24 h-24 mx-auto rounded-full overflow-hidden mb-4 border-2 border-farm-200">
+                        <img src="dm.jpg" alt="Director" class="w-full h-full object-cover">
+                    </div>
+                    <h4 class="font-bold text-gray-900 mb-1">Debendra Nath Maity</h4>
+                    <p class="text-farm-600 text-sm font-medium">Director</p>
+                    <p class="text-gray-500 text-xs mt-2">Board Member</p>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl shadow-lg card-hover border border-gray-100 text-center">
+                    <div class="w-24 h-24 mx-auto rounded-full overflow-hidden mb-4 border-2 border-farm-200">
+                        <img src="https://ui-avatars.com/api/?name=Kalpana+Santra&background=15803d&color=fff&size=128" alt="Director" class="w-full h-full object-cover">
+                    </div>
+                    <h4 class="font-bold text-gray-900 mb-1">Kalpana Santra</h4>
+                    <p class="text-farm-600 text-sm font-medium">Director</p>
+                    <p class="text-gray-500 text-xs mt-2">Board Member</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Products Section -->
+    <section id="products" class="py-20 bg-earth-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="font-serif text-4xl font-bold text-gray-900 mb-4">Our Products</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto">Fresh, organic vegetables and agricultural products directly from our farms to your doorstep</p>
+            </div>
+
+            <!-- Auth Warning -->
+            <div id="authWarning" class="hidden bg-amber-50 border-l-4 border-amber-400 p-4 mb-8 rounded-r-lg">
+                <div class="flex items-start">
+                    <i class="fas fa-exclamation-triangle text-amber-500 mt-0.5 mr-3"></i>
+                    <div>
+                        <p class="text-amber-800 font-medium">Sign in required to purchase</p>
+                        <p class="text-amber-700 text-sm mt-1">Please sign in to place orders and track your purchases.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8" id="productsGrid">
+                <!-- Products will be dynamically loaded here -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Admin Panel (Hidden by default) -->
+    <section id="adminPanel" class="admin-panel py-20 bg-gray-50 min-h-screen">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center mb-8">
+                <div>
+                    <h2 class="font-serif text-3xl font-bold text-gray-900">Admin Dashboard</h2>
+                    <p class="text-gray-600 mt-1">Manage orders and product links</p>
+                </div>
+                <button onclick="hideAdminPanel()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg transition">
+                    <i class="fas fa-arrow-left mr-2"></i>Back to Site
+                </button>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm font-medium">Total Orders</p>
+                            <p class="text-2xl font-bold text-gray-900 mt-1" id="totalOrders">0</p>
+                        </div>
+                        <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm font-medium">Online Orders</p>
+                            <p class="text-2xl font-bold text-farm-600 mt-1" id="onlineOrders">0</p>
+                        </div>
+                        <div class="w-12 h-12 bg-farm-100 rounded-full flex items-center justify-center text-farm-600">
+                            <i class="fas fa-globe"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm font-medium">Offline Orders</p>
+                            <p class="text-2xl font-bold text-amber-600 mt-1" id="offlineOrders">0</p>
+                        </div>
+                        <div class="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center text-amber-600">
+                            <i class="fas fa-store"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm font-medium">Total Users</p>
+                            <p class="text-2xl font-bold text-purple-600 mt-1" id="totalUsers">0</p>
+                        </div>
+                        <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center text-purple-600">
+                            <i class="fas fa-users"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Orders Table -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="p-6 border-b border-gray-100">
+                    <h3 class="font-bold text-lg text-gray-900">Recent Orders</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersTableBody" class="divide-y divide-gray-100">
+                            <!-- Orders will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Product Link Management -->
+            <div class="mt-8 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="p-6 border-b border-gray-100">
+                    <h3 class="font-bold text-lg text-gray-900">Manage Product Links</h3>
+                    <p class="text-sm text-gray-600 mt-1">Add external purchase links for online products</p>
+                </div>
+                <div class="p-6">
+                    <div class="grid md:grid-cols-2 gap-4 mb-4">
+                        <select id="productSelect" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-farm-500 focus:border-transparent">
+                            <option value="">Select Product</option>
+                        </select>
+                        <input type="url" id="productLink" placeholder="Enter external product URL" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-farm-500 focus:border-transparent">
+                    </div>
+                    <button onclick="updateProductLink()" class="btn-primary text-white px-6 py-2 rounded-lg font-medium">
+                        <i class="fas fa-link mr-2"></i>Update Link
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-2 gap-12">
+                <div>
+                    <h2 class="font-serif text-4xl font-bold text-gray-900 mb-6">Get in Touch</h2>
+                    <p class="text-gray-600 mb-8 text-lg">Have questions about our products or want to join as a farmer member? Contact us today.</p>
+                    
+                    <div class="space-y-6">
+                        <div class="flex items-start space-x-4">
+                            <div class="w-12 h-12 bg-farm-100 rounded-full flex items-center justify-center text-farm-600 flex-shrink-0">
+                                <i class="fas fa-map-marker-alt text-xl"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-gray-900 mb-1">Registered Office</h4>
+                                <p class="text-gray-600">C/o Anukul Santra, Vill: Rasan, P.S: Egra,<br>East Midnapore, Baranihary,<br>West Bengal, India - 721429</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start space-x-4">
+                            <div class="w-12 h-12 bg-farm-100 rounded-full flex items-center justify-center text-farm-600 flex-shrink-0">
+                                <i class="fas fa-envelope text-xl"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-gray-900 mb-1">Email</h4>
+                                <p class="text-gray-600">Egra1kfpc@gmail.com</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start space-x-4">
+                            <div class="w-12 h-12 bg-farm-100 rounded-full flex items-center justify-center text-farm-600 flex-shrink-0">
+                                <i class="fas fa-id-card text-xl"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-gray-900 mb-1">Company Details</h4>
+                                <p class="text-gray-600">CIN: U01139WB2023PTC263793<br>ROC: Kolkata II<br>NIC Code: 01139</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-earth-50 p-8 rounded-2xl">
+                    <form onsubmit="event.preventDefault(); showToast('Message sent successfully!');" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                            <input type="text" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-farm-500 focus:border-transparent" placeholder="Your name">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                            <input type="email" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-farm-500 focus:border-transparent" placeholder="your@email.com">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Message</label>
+                            <textarea rows="4" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-farm-500 focus:border-transparent" placeholder="How can we help you?"></textarea>
+                        </div>
+                        <button type="submit" class="w-full btn-primary text-white py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition">
+                            Send Message
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-4 gap-8 mb-8">
+                <div>
+                    <div class="flex items-center space-x-3 mb-4">
+                        <div class="w-10 h-10 bg-farm-600 rounded-full flex items-center justify-center text-white font-bold">
+                            BH
+                        </div>
+                        <div>
+                            <h3 class="font-serif font-bold">Baba Hatnagar</h3>
+                            <p class="text-xs text-gray-400">Farmers Producer Co.</p>
+                        </div>
+                    </div>
+                    <p class="text-gray-400 text-sm">Empowering farmers through collective strength and sustainable agriculture since 2023.</p>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold mb-4">Quick Links</h4>
+                    <ul class="space-y-2 text-sm text-gray-400">
+                        <li><a href="#about" class="hover:text-white transition">About Us</a></li>
+                        <li><a href="#products" class="hover:text-white transition">Products</a></li>
+                        <li><a href="#team" class="hover:text-white transition">Leadership</a></li>
+                        <li><a href="#contact" class="hover:text-white transition">Contact</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold mb-4">Legal</h4>
+                    <ul class="space-y-2 text-sm text-gray-400">
+                        <li>CIN: U01139WB2023PTC263793</li>
+                        <li>Private Limited Company</li>
+                        <li>Registered: RoC-Kolkata II</li>
+                        <li>Date of Incorporation: 25th July 2023</li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold mb-4">Connect</h4>
+                    <div class="flex space-x-4">
+                        <a href="#" class="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-farm-600 transition">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-farm-600 transition">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-farm-600 transition">
+                            <i class="fab fa-whatsapp"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-800 pt-8 text-center text-sm text-gray-500">
+                <p>&copy; 2026 Baba Hatnagar Krishikranti Farmers Producer Company Limited. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Auth Modal -->
+    <div id="authModal" class="modal">
+        <div class="modal-content">
+            <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gradient-to-r from-farm-50 to-earth-50 rounded-t-2xl">
+                <h3 class="font-serif text-2xl font-bold text-gray-900">Sign In</h3>
+                <button onclick="closeAuthModal()" class="text-gray-400 hover:text-gray-600 transition">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <div id="authForms">
+                    <!-- Login Form -->
+                    <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                            <input type="email" id="loginEmail" required class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-farm-500 focus:border-transparent" placeholder="Enter your email">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                            <input type="password" id="loginPassword" required class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-farm-500 focus:border-transparent" placeholder="Enter your password">
+                        </div>
+                        <button type="submit" class="w-full btn-primary text-white py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition">
+                            Sign In
+                        </button>
+                        <p class="text-center text-sm text-gray-600">
+                            Don't have an account? <button type="button" onclick="toggleAuthMode()" class="text-farm-600 font-semibold hover:underline">Register</button>
+                        </p>
+                    </form>
+
+                    <!-- Register Form -->
+                    <form id="registerForm" onsubmit="handleRegister(event)" class="space-y-4 hidden">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                            <input type="text" id="regName" required class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-farm-500 focus:border-transparent" placeholder="Enter your full name">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                            <input type="email" id="regEmail" required class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-farm-500 focus:border-transparent" placeholder="Enter your email">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                            <input type="password" id="regPassword" required minlength="6" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-farm-500 focus:border-transparent" placeholder="Create password (min 6 chars)">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                            <input type="tel" id="regPhone" required class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-farm-500 focus:border-transparent" placeholder="Enter your phone number">
+                        </div>
+                        <button type="submit" class="w-full btn-primary text-white py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition">
+                            Create Account
+                        </button>
+                        <p class="text-center text-sm text-gray-600">
+                            Already have an account? <button type="button" onclick="toggleAuthMode()" class="text-farm-600 font-semibold hover:underline">Sign In</button>
+                        </p>
+                    </form>
+                </div>
+                <div id="authMessage" class="mt-4 text-center text-sm hidden"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Modal -->
+    <div id="orderModal" class="modal">
+        <div class="modal-content">
+            <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gradient-to-r from-farm-50 to-earth-50 rounded-t-2xl">
+                <h3 class="font-serif text-2xl font-bold text-gray-900">Place Order</h3>
+                <button onclick="closeOrderModal()" class="text-gray-400 hover:text-gray-600 transition">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <div id="selectedProduct" class="mb-6 p-4 bg-gray-50 rounded-lg">
+                    <!-- Product details will be inserted here -->
+                </div>
+                
+                <form id="orderForm" onsubmit="handleOrder(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Order Type</label>
+                        <div class="grid grid-cols-2 gap-4">
+                            <label class="cursor-pointer">
+                                <input type="radio" name="orderType" value="online" class="sr-only peer" onchange="toggleOnlineLink()">
+                                <div class="p-4 rounded-lg border-2 border-gray-200 peer-checked:border-farm-500 peer-checked:bg-farm-50 text-center transition">
+                                    <i class="fas fa-globe text-2xl mb-2 text-farm-600"></i>
+                                    <div class="font-semibold text-gray-900">Online</div>
+                                    <div class="text-xs text-gray-500">External link purchase</div>
+                                </div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="orderType" value="offline" class="sr-only peer" checked onchange="toggleOnlineLink()">
+                                <div class="p-4 rounded-lg border-2 border-gray-200 peer-checked:border-farm-500 peer-checked:bg-farm-50 text-center transition">
+                                    <i class="fas fa-store text-2xl mb-2 text-farm-600"></i>
+                                    <div class="font-semibold text-gray-900">Offline</div>
+                                    <div class="text-xs text-gray-500">Direct purchase</div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div id="onlineLinkSection" class="hidden">
+                        <div class="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                            <p class="text-sm text-blue-800 mb-2"><i class="fas fa-info-circle mr-1"></i> You will be redirected to our online store</p>
+                            <a id="externalProductLink" href="#" target="_blank" class="text-farm-600 font-semibold hover:underline break-all"></a>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
+                        <input type="number" id="orderQuantity" min="1" value="1" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-farm-500 focus:border-transparent">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Delivery Address</label>
+                        <textarea id="orderAddress" rows="3" required class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-farm-500 focus:border-transparent" placeholder="Enter your full address"></textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Additional Notes</label>
+                        <input type="text" id="orderNotes" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-farm-500 focus:border-transparent" placeholder="Any special instructions (optional)">
+                    </div>
+
+                    <button type="submit" id="submitOrderBtn" class="w-full btn-primary text-white py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition">
+                        Confirm Order
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
+
+    <script>
+        // Firebase Configuration - REPLACE WITH YOUR CONFIG
+        const firebaseConfig = {
+            apiKey: "AIzaSyA7azuZEpvJgRXJ3pM6koaBjsRJhtSdFQk",
+            authDomain: "bhkfpcl.firebaseapp.com",
+            projectId: "bhkfpcl",
+            storageBucket: "bhkfpcl.firebasestorage.app",
+            messagingSenderId: "89978298594",
+            appId: "1:89978298594:web:04a113be5c674af4eb7ebb"
+        };
+
+        // Initialize Firebase
+        let app, auth, db;
+        
+        // Try to initialize Firebase if config is valid
+        try {
+            if (firebaseConfig.apiKey !== "YOUR_API_KEY") {
+                app = firebase.initializeApp(firebaseConfig);
+                auth = firebase.auth();
+                db = firebase.firestore();
+            }
+        } catch (e) {
+            console.log("Firebase not configured yet");
+        }
+
+        // State
+        let currentUser = null;
+        let isAdmin = false;
+        let products = [
+            {
+                id: 1,
+                name: "Fresh Organic Vegetables",
+                description: "Farm-fresh seasonal vegetables grown using organic farming practices. Includes tomatoes, brinjal, okra, and leafy greens.",
+                price: "₹200/kg",
+                image: "https://images.unsplash.com/photo-1566385101042-1a0aa0c1268c?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+                category: "Vegetables",
+                onlineLink: ""
+            },
+            {
+                id: 2,
+                name: "Paddy Straw Mushroom Spawn",
+                description: "High-quality mushroom spawn for paddy straw mushroom cultivation. Perfect for commercial farming.",
+                price: "₹150/packet",
+                image: "https://images.unsplash.com/photo-1576076567699-247103a75b10?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+                category: "Mushroom",
+                onlineLink: "https://www.indiamart.com/proddetail/paddy-straw-mushroom-spawn-2855764409855.html"
+            },
+            {
+                id: 3,
+                name: "Seasonal Seeds Collection",
+                description: "Premium quality vegetable seeds for kharif and rabi seasons. High germination rate guaranteed.",
+                price: "₹500/box",
+                image: "https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+                category: "Seeds",
+                onlineLink: ""
+            },
+            {
+                id: 4,
+                name: "Organic Fertilizer",
+                description: "100% organic compost and bio-fertilizers for healthy crop growth. Eco-friendly and chemical-free.",
+                price: "₹350/bag",
+                image: "https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+                category: "Fertilizer",
+                onlineLink: ""
+            },
+            {
+                id: 5,
+                name: "Fresh Farm Eggs",
+                description: "Free-range country chicken eggs from our integrated poultry farming. Nutritious and fresh.",
+                price: "₹15/egg",
+                image: "https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+                category: "Poultry",
+                onlineLink: ""
+            },
+            {
+                id: 6,
+                name: "Honey (Pure & Natural)",
+                description: "Raw, unprocessed honey collected from our apiary. No additives, 100% natural.",
+                price: "₹400/kg",
+                image: "https://images.unsplash.com/photo-1587049352846-4a222e784d38?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+                category: "Apiary",
+                onlineLink: ""
+            }
+        ];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            renderProducts();
+            populateProductSelect();
+            
+            // Check auth state if Firebase is initialized
+            if (auth) {
+                auth.onAuthStateChanged(user => {
+                    if (user) {
+                        currentUser = user;
+                        checkUserRole(user.uid);
+                    } else {
+                        currentUser = null;
+                        isAdmin = false;
+                        updateUI();
+                    }
+                });
+            }
+            
+            // Navbar scroll effect
+            window.addEventListener('scroll', () => {
+                const navbar = document.getElementById('navbar');
+                if (window.scrollY > 50) {
+                    navbar.classList.add('shadow-md');
+                } else {
+                    navbar.classList.remove('shadow-md');
+                }
+            });
+        });
+
+        // Render Products
+        function renderProducts() {
+            const grid = document.getElementById('productsGrid');
+            grid.innerHTML = products.map(product => `
+                <div class="product-card shadow-lg">
+                    <div class="relative h-48 overflow-hidden">
+                        <img src="${product.image}" alt="${product.name}" class="w-full h-full object-cover transition hover:scale-110 duration-500">
+                        <div class="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold text-farm-700">
+                            ${product.category}
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="font-serif text-xl font-bold text-gray-900 mb-2">${product.name}</h3>
+                        <p class="text-gray-600 text-sm mb-4 line-clamp-2">${product.description}</p>
+                        <div class="flex justify-between items-center mb-4">
+                            <span class="text-2xl font-bold text-farm-600">${product.price}</span>
+                            ${product.onlineLink ? '<span class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">Online Available</span>' : ''}
+                        </div>
+                        <button onclick="openOrderModal(${product.id})" class="w-full btn-primary text-white py-3 rounded-lg font-semibold shadow-md hover:shadow-lg transition flex items-center justify-center">
+                            <i class="fas fa-shopping-cart mr-2"></i>Buy Now
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Auth Functions
+        function openAuthModal() {
+            document.getElementById('authModal').style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeAuthModal() {
+            document.getElementById('authModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+            document.getElementById('authMessage').classList.add('hidden');
+        }
+
+        function toggleAuthMode() {
+            document.getElementById('loginForm').classList.toggle('hidden');
+            document.getElementById('registerForm').classList.toggle('hidden');
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            if (!auth) {
+                showToast('Firebase not configured. Please add your Firebase config.', 'error');
+                return;
+            }
+
+            try {
+                const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                showToast('Signed in successfully!');
+                closeAuthModal();
+            } catch (error) {
+                showAuthError(error.message);
+            }
+        }
+
+        async function handleRegister(e) {
+            e.preventDefault();
+            const name = document.getElementById('regName').value;
+            const email = document.getElementById('regEmail').value;
+            const password = document.getElementById('regPassword').value;
+            const phone = document.getElementById('regPhone').value;
+            
+            if (!auth) {
+                showToast('Firebase not configured. Please add your Firebase config.', 'error');
+                return;
+            }
+
+            try {
+                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                
+                // Save user data to Firestore
+                await db.collection('users').doc(userCredential.user.uid).set({
+                    name: name,
+                    email: email,
+                    phone: phone,
+                    role: 'user',
+                    createdAt: new Date()
+                });
+                
+                showToast('Account created successfully!');
+                closeAuthModal();
+            } catch (error) {
+                showAuthError(error.message);
+            }
+        }
+
+        async function logout() {
+            if (auth) {
+                await auth.signOut();
+                showToast('Logged out successfully');
+            }
+            currentUser = null;
+            isAdmin = false;
+            updateUI();
+            hideAdminPanel();
+        }
+
+        async function checkUserRole(uid) {
+            if (!db) return;
+            
+            try {
+                const doc = await db.collection('users').doc(uid).get();
+                if (doc.exists) {
+                    const data = doc.data();
+                    isAdmin = data.role === 'admin';
+                    updateUI();
+                    
+                    if (isAdmin) {
+                        loadAdminData();
+                    }
+                }
+            } catch (error) {
+                console.error('Error checking role:', error);
+            }
+        }
+
+        function updateUI() {
+            const loginBtn = document.getElementById('loginBtn');
+            const userSection = document.getElementById('userSection');
+            const userName = document.getElementById('userName');
+            const adminBtn = document.getElementById('adminBtn');
+            const authWarning = document.getElementById('authWarning');
+
+            if (currentUser) {
+                loginBtn.classList.add('hidden');
+                userSection.classList.remove('hidden');
+                userSection.classList.add('flex');
+                userName.textContent = currentUser.email;
+                
+                if (isAdmin) {
+                    adminBtn.classList.remove('hidden');
+                } else {
+                    adminBtn.classList.add('hidden');
+                }
+                
+                authWarning.classList.add('hidden');
+            } else {
+                loginBtn.classList.remove('hidden');
+                userSection.classList.add('hidden');
+                userSection.classList.remove('flex');
+                adminBtn.classList.add('hidden');
+                authWarning.classList.remove('hidden');
+            }
+        }
+
+        function showAuthError(message) {
+            const msgDiv = document.getElementById('authMessage');
+            msgDiv.textContent = message;
+            msgDiv.classList.remove('hidden');
+            msgDiv.className = 'mt-4 text-center text-sm text-red-600';
+        }
+
+        // Order Functions
+        let selectedProductId = null;
+
+        function openOrderModal(productId) {
+            if (!currentUser) {
+                openAuthModal();
+                showToast('Please sign in to place an order', 'error');
+                return;
+            }
+
+            selectedProductId = productId;
+            const product = products.find(p => p.id === productId);
+            
+            document.getElementById('selectedProduct').innerHTML = `
+                <div class="flex items-center space-x-4">
+                    <img src="${product.image}" class="w-20 h-20 rounded-lg object-cover">
+                    <div>
+                        <h4 class="font-bold text-gray-900">${product.name}</h4>
+                        <p class="text-farm-600 font-semibold">${product.price}</p>
+                    </div>
+                </div>
+            `;
+            
+            // Set external link if available
+            const linkSection = document.getElementById('onlineLinkSection');
+            const linkEl = document.getElementById('externalProductLink');
+            
+            if (product.onlineLink) {
+                linkEl.href = product.onlineLink;
+                linkEl.textContent = product.onlineLink;
+            } else {
+                linkEl.textContent = 'No external link available for this product';
+                linkEl.href = '#';
+            }
+            
+            document.getElementById('orderModal').style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeOrderModal() {
+            document.getElementById('orderModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+            selectedProductId = null;
+        }
+
+        function toggleOnlineLink() {
+            const orderType = document.querySelector('input[name="orderType"]:checked').value;
+            const linkSection = document.getElementById('onlineLinkSection');
+            const submitBtn = document.getElementById('submitOrderBtn');
+            
+            if (orderType === 'online') {
+                linkSection.classList.remove('hidden');
+                submitBtn.innerHTML = '<i class="fas fa-external-link-alt mr-2"></i>Proceed to Online Store';
+            } else {
+                linkSection.classList.add('hidden');
+                submitBtn.innerHTML = '<i class="fas fa-check mr-2"></i>Confirm Order';
+            }
+        }
+
+        async function handleOrder(e) {
+            e.preventDefault();
+            
+            if (!db || !currentUser) {
+                showToast('Please configure Firebase first', 'error');
+                return;
+            }
+
+            const orderType = document.querySelector('input[name="orderType"]:checked').value;
+            const quantity = document.getElementById('orderQuantity').value;
+            const address = document.getElementById('orderAddress').value;
+            const notes = document.getElementById('orderNotes').value;
+            const product = products.find(p => p.id === selectedProductId);
+
+            try {
+                if (orderType === 'online' && product.onlineLink) {
+                    // Save order and redirect
+                    await db.collection('orders').add({
+                        userId: currentUser.uid,
+                        userEmail: currentUser.email,
+                        productId: selectedProductId,
+                        productName: product.name,
+                        quantity: quantity,
+                        address: address,
+                        notes: notes,
+                        orderType: 'online',
+                        status: 'pending',
+                        createdAt: new Date()
+                    });
+                    
+                    window.open(product.onlineLink, '_blank');
+                    showToast('Order saved! Redirecting to online store...');
+                } else {
+                    // Offline order
+                    await db.collection('orders').add({
+                        userId: currentUser.uid,
+                        userEmail: currentUser.email,
+                        productId: selectedProductId,
+                        productName: product.name,
+                        quantity: quantity,
+                        address: address,
+                        notes: notes,
+                        orderType: 'offline',
+                        status: 'pending',
+                        createdAt: new Date()
+                    });
+                    
+                    showToast('Order placed successfully! We will contact you soon.');
+                }
+                
+                closeOrderModal();
+            } catch (error) {
+                showToast('Error placing order: ' + error.message, 'error');
+            }
+        }
+
+        // Admin Functions
+        function showAdminPanel() {
+            if (!isAdmin) {
+                showToast('Access denied. Admins only.', 'error');
+                return;
+            }
+            
+            document.getElementById('adminPanel').style.display = 'block';
+            document.getElementById('adminPanel').classList.add('slide-in');
+            window.scrollTo(0, 0);
+            loadAdminData();
+        }
+
+        function hideAdminPanel() {
+            document.getElementById('adminPanel').style.display = 'none';
+        }
+
+        async function loadAdminData() {
+            if (!db) return;
+            
+            try {
+                // Load orders
+                const ordersSnapshot = await db.collection('orders').orderBy('createdAt', 'desc').get();
+                const orders = [];
+                let onlineCount = 0;
+                let offlineCount = 0;
+                
+                ordersSnapshot.forEach(doc => {
+                    const order = doc.data();
+                    order.id = doc.id;
+                    orders.push(order);
+                    
+                    if (order.orderType === 'online') onlineCount++;
+                    else offlineCount++;
+                });
+                
+                document.getElementById('totalOrders').textContent = orders.length;
+                document.getElementById('onlineOrders').textContent = onlineCount;
+                document.getElementById('offlineOrders').textContent = offlineCount;
+                
+                // Render orders table
+                const tbody = document.getElementById('ordersTableBody');
+                tbody.innerHTML = orders.map(order => `
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#${order.id.slice(-6)}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${order.userEmail}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${order.productName}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="status-badge ${order.orderType === 'online' ? 'status-online' : 'status-offline'}">
+                                ${order.orderType === 'online' ? '🌐 Online' : '🏪 Offline'}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 py-1 text-xs rounded-full ${order.status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">
+                                ${order.status}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            ${order.createdAt ? new Date(order.createdAt.toDate()).toLocaleDateString() : 'N/A'}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                            <button onclick="viewOrderDetails('${order.id}')" class="text-farm-600 hover:text-farm-700 font-medium">View</button>
+                        </td>
+                    </tr>
+                `).join('');
+                
+                // Load users count
+                const usersSnapshot = await db.collection('users').get();
+                document.getElementById('totalUsers').textContent = usersSnapshot.size;
+                
+            } catch (error) {
+                console.error('Error loading admin data:', error);
+            }
+        }
+
+        function populateProductSelect() {
+            const select = document.getElementById('productSelect');
+            select.innerHTML = '<option value="">Select Product</option>' + 
+                products.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+        }
+
+        async function updateProductLink() {
+            const productId = document.getElementById('productSelect').value;
+            const link = document.getElementById('productLink').value;
+            
+            if (!productId || !link) {
+                showToast('Please select a product and enter a link', 'error');
+                return;
+            }
+            
+            // Update local product data
+            const product = products.find(p => p.id == productId);
+            if (product) {
+                product.onlineLink = link;
+                renderProducts();
+                showToast('Product link updated successfully!');
+                document.getElementById('productLink').value = '';
+            }
+        }
+
+        function viewOrderDetails(orderId) {
+            showToast('Order details: ' + orderId);
+        }
+
+        // Utility Functions
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.style.background = type === 'error' ? '#dc2626' : '#16a34a';
+            toast.style.display = 'block';
+            
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+
+        // Close modals on outside click
+        window.onclick = function(event) {
+            const authModal = document.getElementById('authModal');
+            const orderModal = document.getElementById('orderModal');
+            
+            if (event.target === authModal) {
+                closeAuthModal();
+            }
+            if (event.target === orderModal) {
+                closeOrderModal();
+            }
+        }
+    </script>
+</body>
+</html>
