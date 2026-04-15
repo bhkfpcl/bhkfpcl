@@ -186,6 +186,21 @@
             color: #92400e;
         }
 
+        .status-delivered {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-cancelled {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
         /* Custom scrollbar for modal */
         .modal-content::-webkit-scrollbar {
             width: 8px;
@@ -203,6 +218,20 @@
         
         .modal-content::-webkit-scrollbar-thumb:hover {
             background: #15803d;
+        }
+
+        /* Action buttons in admin */
+        .action-btn {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-right: 4px;
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover {
+            transform: scale(1.05);
         }
     </style>
 <base target="_blank">
@@ -284,7 +313,7 @@
                     <div class="text-sm text-gray-600 font-medium">Established</div>
                 </div>
                 <div class="p-6 rounded-2xl bg-earth-50">
-                    <div class="text-3xl font-bold text-farm-600 mb-2">₹15L</div>
+                    <div class="text-3xl font-bold text-farm-600 mb-2">₹31L</div>
                     <div class="text-sm text-gray-600 font-medium">Authorized Capital</div>
                 </div>
                 <div class="p-6 rounded-2xl bg-earth-50">
@@ -650,7 +679,7 @@
                             <label class="block text-sm font-medium text-gray-700 mb-1">Message</label>
                             <textarea id="contactMessage" rows="4" required class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-farm-500 focus:border-transparent" placeholder="How can we help you?"></textarea>
                         </div>
-                        <button type="submit" class="w-full btn-primary text-white py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition">
+                        <button type="submit" id="contactSubmitBtn" class="w-full btn-primary text-white py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition">
                             Send Message
                         </button>
                     </form>
@@ -1122,12 +1151,20 @@
             msgDiv.className = 'mt-4 text-center text-sm text-red-600';
         }
 
-        // Contact Form Handler
+        // Contact Form Handler - Updated with better error handling
         async function handleContactSubmit(e) {
             e.preventDefault();
             
+            const submitBtn = document.getElementById('contactSubmitBtn');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Sending...';
+            submitBtn.disabled = true;
+
+            // Check if Firebase is initialized
             if (!db) {
-                showToast('Firebase not configured. Please add your Firebase config.', 'error');
+                showToast('Error: Firebase not initialized. Please check your configuration.', 'error');
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
                 return;
             }
 
@@ -1137,19 +1174,29 @@
             const message = document.getElementById('contactMessage').value;
 
             try {
-                await db.collection('contactMessages').add({
+                // Add to Firestore with explicit error handling
+                const docRef = await db.collection('contactMessages').add({
                     name: name,
                     email: email,
                     phone: phone,
                     message: message,
                     status: 'unread',
-                    createdAt: new Date()
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 
+                console.log('Message saved with ID:', docRef.id);
                 showToast('Message sent successfully! We will contact you soon.');
                 document.getElementById('contactForm').reset();
             } catch (error) {
-                showToast('Error sending message: ' + error.message, 'error');
+                console.error('Contact form error:', error);
+                if (error.code === 'permission-denied') {
+                    showToast('Error: Permission denied. Please update Firebase security rules.', 'error');
+                } else {
+                    showToast('Error sending message: ' + error.message, 'error');
+                }
+            } finally {
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
             }
         }
 
@@ -1251,7 +1298,7 @@
                         notes: notes,
                         orderType: 'online',
                         status: 'pending',
-                        createdAt: new Date()
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
                     });
                     
                     window.open(product.onlineLink, '_blank');
@@ -1269,7 +1316,7 @@
                         notes: notes,
                         orderType: 'offline',
                         status: 'pending',
-                        createdAt: new Date()
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
                     });
                     
                     showToast('Order placed successfully! We will contact you soon.');
@@ -1321,7 +1368,7 @@
                 document.getElementById('onlineOrders').textContent = onlineCount;
                 document.getElementById('offlineOrders').textContent = offlineCount;
                 
-                // Render orders table with phone number
+                // Render orders table with phone number and action buttons
                 const tbody = document.getElementById('ordersTableBody');
                 tbody.innerHTML = orders.map(order => `
                     <tr class="hover:bg-gray-50">
@@ -1335,7 +1382,7 @@
                             </span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="px-2 py-1 text-xs rounded-full ${order.status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">
+                            <span class="px-2 py-1 text-xs rounded-full ${order.status === 'delivered' ? 'bg-green-100 text-green-800 status-delivered' : order.status === 'cancelled' ? 'bg-red-100 text-red-800 status-cancelled' : 'bg-yellow-100 text-yellow-800 status-pending'}">
                                 ${order.status}
                             </span>
                         </td>
@@ -1343,10 +1390,22 @@
                             ${order.createdAt ? new Date(order.createdAt.toDate()).toLocaleDateString() : 'N/A'}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm">
-                            <button onclick="viewOrderDetails('${order.id}')" class="text-farm-600 hover:text-farm-700 font-medium">View</button>
+                            <div class="flex flex-col space-y-1">
+                                ${order.status !== 'delivered' && order.status !== 'cancelled' ? `
+                                    <button onclick="updateOrderStatus('${order.id}', 'delivered')" class="action-btn bg-green-100 text-green-700 hover:bg-green-200">
+                                        <i class="fas fa-check mr-1"></i>Deliver
+                                    </button>
+                                    <button onclick="updateOrderStatus('${order.id}', 'cancelled')" class="action-btn bg-red-100 text-red-700 hover:bg-red-200">
+                                        <i class="fas fa-times mr-1"></i>Cancel
+                                    </button>
+                                ` : ''}
+                                <button onclick="deleteOrder('${order.id}')" class="action-btn bg-gray-100 text-gray-700 hover:bg-gray-200">
+                                    <i class="fas fa-trash mr-1"></i>Delete
+                                </button>
+                            </div>
                         </td>
                     </tr>
-                `).join('');
+                `).                join('');
                 
                 // Load users count
                 const usersSnapshot = await db.collection('users').get();
@@ -1396,6 +1455,44 @@
                 
             } catch (error) {
                 console.error('Error loading admin data:', error);
+                showToast('Error loading admin data: ' + error.message, 'error');
+            }
+        }
+
+        // Update Order Status
+        async function updateOrderStatus(orderId, status) {
+            if (!db) return;
+            
+            const action = status === 'delivered' ? 'mark as delivered' : 'cancel';
+            if (!confirm(`Are you sure you want to ${action} this order?`)) return;
+            
+            try {
+                await db.collection('orders').doc(orderId).update({
+                    status: status,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                showToast(`Order ${status} successfully!`);
+                loadAdminData(); // Refresh the table
+            } catch (error) {
+                console.error('Error updating order:', error);
+                showToast('Error updating order: ' + error.message, 'error');
+            }
+        }
+
+        // Delete Order
+        async function deleteOrder(orderId) {
+            if (!db) return;
+            
+            if (!confirm('Are you sure you want to delete this order? This action cannot be undone.')) return;
+            
+            try {
+                await db.collection('orders').doc(orderId).delete();
+                showToast('Order deleted successfully!');
+                loadAdminData(); // Refresh the table
+            } catch (error) {
+                console.error('Error deleting order:', error);
+                showToast('Error deleting order: ' + error.message, 'error');
             }
         }
 
@@ -1443,7 +1540,7 @@
             const link = document.getElementById('productLink').value;
             
             if (!productId || !link) {
-                                showToast('Please select a product and enter a link', 'error');
+                showToast('Please select a product and enter a link', 'error');
                 return;
             }
             
